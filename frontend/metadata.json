@@ -1,0 +1,6 @@
+{
+  "name": "Identity Map",
+  "description": "Visualizador interactivo de grafo de identidad personal, con simulador de snapshots, análisis de centralidad, exportación DOT/SVG y explorador de código Python.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
