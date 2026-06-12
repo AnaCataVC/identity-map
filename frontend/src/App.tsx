@@ -24,7 +24,8 @@ import {
   Sparkles,
   Upload,
   FileJson,
-  Github
+  Github,
+  Palette
 } from "lucide-react";
 import { IdentityNode, IdentityEdge, IdentitySnapshot, NodeType, RelationType } from "./types";
 import { defaultNodes, defaultEdges, defaultSnapshots } from "./defaultData";
@@ -112,14 +113,11 @@ const TRANSLATIONS = {
     sliderNodePenwidth: "Grosor contorno de Nodos:",
     sliderEdgePenwidth: "Grosor líneas de Aristas:",
     sliderNodeOpacity: "Opacidad de Nodos:",
-    sliderEdgeOpacity: "Opacidad de Aristas:",
-    dotExportTitle: "Código de Exportación DOT (Graphviz)",
-    downloadedDot: "¡Descargado!",
-    downloadDotBtn: "Descargar Código DOT",
-    howRenderLocal: "Herramienta Python CLI Local",
+    exportsTitle: "Exportaciones y Análisis",
+    howRenderLocal: "Motor Analítico Avanzado (Python)",
     githubBtn: "Ver Backend en GitHub",
-    renderLocalLabel1: "El repositorio incluye una carpeta 'backend' con una potente CLI en Python. Asegúrate de tener Python 3.11+, instala las dependencias de 'requirements.txt', y carga tu JSON exportado para inicializar la base de datos local de análisis profundo. Luego, puedes generar SVG con:",
-    renderLocalLabel2: "Nota: El JSON que exportas desde esta sección es el formato definitivo y más robusto; es el puente universal entre esta UI interactiva y el motor analítico de Python en tu disco duro.",
+    renderLocalLabel1: "¿Quieres calcular métricas matemáticas sobre tus datos (NetworkX)? Usa nuestro backend local en Python. Descárgalo de GitHub, instala 'requirements.txt', y carga tu archivo JSON:",
+    renderLocalLabel2: "El JSON que exportas aquí sirve tanto para respaldar tus datos como para introducirlos al motor analítico de Python.",
     dangerZoneTitle: "Zona de Peligro",
     dangerZoneAdvice: "Las siguientes acciones son destructivas y no se pueden deshacer. Puedes restaurar el conjunto original de ejemplo o bien vaciar por completo todo el mapa para empezar desde cero.",
     dangerZoneResetBtn: "Restaurar Ejemplo (Datos Semilla)",
@@ -229,14 +227,11 @@ const TRANSLATIONS = {
     sliderNodePenwidth: "Node border thickness:",
     sliderEdgePenwidth: "Edge line weight:",
     sliderNodeOpacity: "Node Opacity:",
-    sliderEdgeOpacity: "Edge Opacity:",
-    dotExportTitle: "DOT Export Code (Graphviz)",
-    downloadedDot: "Downloaded!",
-    downloadDotBtn: "Download DOT Code",
-    howRenderLocal: "Local Python CLI Tool",
+    exportsTitle: "Exports & Analysis",
+    howRenderLocal: "Advanced Analysis Engine (Python)",
     githubBtn: "Get Backend on GitHub",
-    renderLocalLabel1: "The repository includes a 'backend' folder with a powerful Python CLI. Make sure you have Python 3.11+, install the 'requirements.txt' dependencies, and load your exported JSON to initialize the local deep analysis database. Then, generate SVGs with:",
-    renderLocalLabel2: "Note: The JSON you export from this section is the definitive and most robust format; it acts as the universal bridge between this interactive UI and the Python analytical engine on your hard drive.",
+    renderLocalLabel1: "Want to calculate mathematical metrics on your data (NetworkX)? Use our local Python backend. Download it from GitHub, install 'requirements.txt', and load your JSON:",
+    renderLocalLabel2: "The JSON you export here serves both as a backup of your data and as the input for the Python analytical engine.",
     dangerZoneTitle: "Danger Zone",
     dangerZoneAdvice: "The following actions are destructive and cannot be undone. You can restore the original sandbox template or fully wipe the map clean to design your own identity nodes from scratch.",
     dangerZoneResetBtn: "Restore Example Set (Seed Data)",
@@ -476,7 +471,6 @@ export default function App() {
 
   // Alert banner states
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
-  const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // ----------------------------------------------------
@@ -1027,77 +1021,6 @@ export default function App() {
     const alphaInt = Math.round(clampedOpacity * 255);
     const alphaHex = alphaInt.toString(16).toUpperCase().padStart(2, "0");
     return `${cleanHex.substring(0, 7)}${alphaHex}`;
-  };
-
-  // ----------------------------------------------------
-  // Dynamic DOT Generator (Graphviz compliance)
-  // ----------------------------------------------------
-  const generatedDotCode = useMemo(() => {
-    const list_nodes = filteredNodesList;
-    const list_edges = filteredEdgesList;
-    
-    const activePaletteConfig = PALETTES[exportPalette] || PALETTES.original;
-
-    const lines = [
-      "digraph G {",
-      '    # General graph attributes for identity map representation',
-      '    bgcolor="#FDFCF8";',
-      "    rankdir=LR;",
-      `    node [fontname="Helvetica,Arial,sans-serif", fontsize=10, shape=box, style="filled,rounded", penwidth=${nodePenwidth.toFixed(1)}];`,
-      `    edge [fontname="Helvetica,Arial,sans-serif", fontsize=8, penwidth=${edgePenwidth.toFixed(1)}, color="#64748b"];`,
-      ""
-    ];
-
-    list_nodes.forEach(n => {
-      const paletteColors = activePaletteConfig[n.type] || activePaletteConfig.otro;
-      const fillcolor = applyOpacityToHex(paletteColors.bg, nodeOpacity);
-      const color = applyOpacityToHex(paletteColors.border, nodeOpacity);
-      const fontcolor = paletteColors.text;
-      
-      const labelText = `${n.label}\\n(${n.type.toUpperCase()})`;
-      lines.push(`    "${n.id}" [label="${labelText}", fillcolor="${fillcolor}", color="${color}", fontcolor="${fontcolor}", tooltip="${n.description}"];`);
-    });
-
-    lines.push("");
-
-    list_edges.forEach(e => {
-      const colorBase = EDGE_COLORS[e.relation] || "#64748B";
-      const color = applyOpacityToHex(colorBase, edgeOpacity);
-      const style = e.relation === "contrasta" ? "dashed" : e.relation === "nacio_de" ? "dotted" : "solid";
-      const arrowhead = e.relation === "bloquea" ? "tee" : e.relation === "alimenta" ? "normal" : "vee";
-      const label = e.weight !== 1.0 ? `${e.relation} (w=${e.weight})` : e.relation;
-      
-      lines.push(`    "${e.source_id}" -> "${e.target_id}" [label="${label}", color="${color}", style="${style}", arrowhead="${arrowhead}"];`);
-    });
-
-    lines.push("}");
-    return lines.join("\n");
-  }, [filteredNodesList, filteredEdgesList, exportPalette, nodePenwidth, edgePenwidth, nodeOpacity, edgeOpacity]);
-
-  // Copy code utility
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
-  };
-
-  // Download code utility
-  const downloadDotFile = (text: string) => {
-    try {
-      const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "identity_map.dot";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 2000);
-    } catch (err) {
-      console.error("Error downloading file:", err);
-    }
   };
 
 
@@ -2077,9 +2000,9 @@ export default function App() {
               
               {/* SECTION: IDIOMA / LANGUAGE SELECTOR */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#6C5CE7] border-b border-[#F0F0F0] pb-1.5 flex items-center gap-1.5">
-                  <Globe className="h-3.5 w-3.5 text-[#6C5CE7]" />
-                  <span>{language === "es" ? "Idioma Presencial / Setup Language" : "Setup Language / Idioma Presencial"}</span>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-[#F0F0F0] pb-1.5 flex items-center gap-1.5">
+                  <Globe className="h-4 w-4 text-[#6C5CE7]" />
+                  <span>Idioma / Language</span>
                 </h4>
                 
                 <div className="flex gap-2">
@@ -2091,7 +2014,6 @@ export default function App() {
                         : "bg-white hover:bg-[#F8F9FA] text-gray-600 border-[#E5E7EB]"
                     }`}
                   >
-                    <span>ES</span>
                     <span>Español</span>
                   </button>
                   <button
@@ -2102,7 +2024,6 @@ export default function App() {
                         : "bg-white hover:bg-[#F8F9FA] text-gray-600 border-[#E5E7EB]"
                     }`}
                   >
-                    <span>EN</span>
                     <span>English</span>
                   </button>
                 </div>
@@ -2110,8 +2031,9 @@ export default function App() {
 
                {/* SECTION 1: ESTILOS Y PALETAS */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#6C5CE7] border-b border-[#F0F0F0] pb-1.5">
-                  {t.paletteTitle}
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-[#F0F0F0] pb-1.5 flex items-center gap-1.5">
+                  <Palette className="h-4 w-4 text-[#6C5CE7]" />
+                  <span>{t.paletteTitle}</span>
                 </h4>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -2137,8 +2059,8 @@ export default function App() {
 
               {/* SECTION 2: VARIABLE MULTIPLIERS */}
               <div className="space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-[#F0F0F0] pb-1.5 flex items-center gap-1">
-                  <Sliders className="h-3.5 w-3.5 text-gray-500" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-[#F0F0F0] pb-1.5 flex items-center gap-1.5">
+                  <Sliders className="h-4 w-4 text-[#6C5CE7]" />
                   <span>{t.sliderTitle}</span>
                 </h4>
 
@@ -2213,59 +2135,14 @@ export default function App() {
                 </div>
               </div>
 
-              {/* SECTION 3: EXPORT VECTOR CODES (DOT/SVG) */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-[#F0F0F0] pb-1.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
-                    {t.dotExportTitle}
-                  </h4>
-                  <button 
-                    onClick={() => downloadDotFile(generatedDotCode)}
-                    className="flex items-center gap-1 px-2.5 py-1 text-[10px] font-semibold text-slate-700 bg-white hover:bg-[#F8F9FA] rounded-md border border-[#EDEDED] hover:border-[#6C5CE7] hover:text-[#6C5CE7] transition-all cursor-pointer"
-                  >
-                    {downloadSuccess ? (
-                      <>
-                        <Check className="h-3.5 w-3.5 text-emerald-600" />
-                        {language === "es" ? "¡Descargado!" : "Downloaded!"}
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-3.5 w-3.5 text-[#6C5CE7]" />
-                        {t.downloadDotBtn}
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Informative advice */}
-                <div className="bg-amber-50/85 border border-amber-200 p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-amber-950 leading-relaxed font-sans">
-                  <Zap className="h-4.5 w-4.5 text-amber-600 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold text-amber-950 block text-[11px]">{t.howRenderLocal}</span>
-                    <span className="text-[11px]">{t.renderLocalLabel1}</span>
-                    <code className="block bg-amber-100 font-mono text-[10px] p-1.5 rounded text-amber-950 my-1">
-                      python main.py export-graph --output mi_identidad
-                    </code>
-                    <span className="text-[11px]">{t.renderLocalLabel2}</span>
-                    <div className="mt-2.5">
-                      <a href="https://github.com/AnaCataVC/identity-map" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-[10px] font-bold tracking-wide uppercase">
-                        <Github className="h-3.5 w-3.5" />
-                        {t.githubBtn}
-                      </a>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* SECTION 3.5: BACKUP & DATA PORTABILITY SECTION */}
+              {/* SECTION 3: EXPORTACIONES Y ANALISIS */}
               <div className="pt-4 border-t border-[#F0F0F0] space-y-4">
                 <div className="flex flex-col gap-1">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 border-b border-[#F0F0F0] pb-1.5 flex items-center gap-1.5">
                     <FileJson className="h-4 w-4 text-[#6C5CE7]" />
-                    <span>{t.dataPortabilityTitle}</span>
+                    <span>{t.exportsTitle}</span>
                   </h4>
-                  <p className="text-[11px] text-gray-500 leading-relaxed font-sans">
+                  <p className="text-[11px] text-gray-500 leading-relaxed font-sans pt-1">
                     {t.dataPortabilityDesc}
                   </p>
                 </div>
@@ -2296,6 +2173,25 @@ export default function App() {
                       <Upload className="h-4 w-4 text-slate-500 shrink-0" />
                       <span>{t.importJsonBtn}</span>
                     </button>
+                  </div>
+                </div>
+
+                {/* Informative advice for Python */}
+                <div className="mt-4 bg-amber-50/85 border border-amber-200 p-3.5 rounded-xl flex items-start gap-2.5 text-xs text-amber-950 leading-relaxed font-sans">
+                  <Zap className="h-4.5 w-4.5 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-amber-950 block text-[11px]">{t.howRenderLocal}</span>
+                    <span className="text-[11px]">{t.renderLocalLabel1}</span>
+                    <code className="block bg-amber-100 font-mono text-[10px] p-1.5 rounded text-amber-950 my-1">
+                      python main.py load-graph mi_archivo.json
+                    </code>
+                    <span className="text-[11px]">{t.renderLocalLabel2}</span>
+                    <div className="mt-2.5">
+                      <a href="https://github.com/AnaCataVC/identity-map" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-[10px] font-bold tracking-wide uppercase">
+                        <Github className="h-3.5 w-3.5" />
+                        {t.githubBtn}
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
