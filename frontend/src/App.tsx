@@ -1103,7 +1103,8 @@ export default function App() {
       {/* Styled App Header in style of top-bar and modern technical studio */}
       <header className="border-b border-[#F0F0F0] bg-white px-6 py-5 flex flex-row items-center justify-between gap-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative">
         <div className="flex-1 min-w-0">
-          <div className="flex items-baseline gap-2.5">
+          <div className="flex items-center gap-3">
+            <img src="/identitymap_icon.png" alt="IdentityMap Logo" className="w-16 h-16 object-contain drop-shadow-sm" />
             <h1 className="text-xl font-bold tracking-tighter text-[#6C5CE7]">
               {t.appTitle}
             </h1>
