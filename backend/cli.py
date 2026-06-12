@@ -449,7 +449,10 @@ def load_graph_cli(
             if "created_at" in n_data and n_data["created_at"]:
                 created_str = n_data["created_at"].replace("Z", "+00:00")
                 n_data["created_at"] = datetime.fromisoformat(created_str)
-            nodes.append(Node(**n_data))
+            tags = n_data.pop("tags", [])
+            node = Node(**n_data)
+            node.tags = tags
+            nodes.append(node)
             
         edges = []
         for e_data in data.get("edges", []):
@@ -460,7 +463,10 @@ def load_graph_cli(
             if "date" in s_data and s_data["date"]:
                 date_str = s_data["date"].replace("Z", "+00:00")
                 s_data["date"] = datetime.fromisoformat(date_str)
-            snapshots.append(Snapshot(**s_data))
+            active_nodes = s_data.pop("active_nodes", [])
+            snap = Snapshot(**s_data)
+            snap.active_nodes = active_nodes
+            snapshots.append(snap)
             
         save_graph(nodes, edges, snapshots)
         msg_ld = f"Grafo cargado y restaurado exitosamente en la base de datos SQLite desde: {filepath}"
