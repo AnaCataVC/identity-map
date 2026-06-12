@@ -23,7 +23,8 @@ import {
   Globe,
   Sparkles,
   Upload,
-  FileJson
+  FileJson,
+  Github
 } from "lucide-react";
 import { IdentityNode, IdentityEdge, IdentitySnapshot, NodeType, RelationType } from "./types";
 import { defaultNodes, defaultEdges, defaultSnapshots } from "./defaultData";
@@ -115,9 +116,10 @@ const TRANSLATIONS = {
     dotExportTitle: "Código de Exportación DOT (Graphviz)",
     downloadedDot: "¡Descargado!",
     downloadDotBtn: "Descargar Código DOT",
-    howRenderLocal: "¿Cómo renderizar esto localmente?",
-    renderLocalLabel1: "Instala Graphviz en tu terminal y ejecuta nuestro comando de Python:",
-    renderLocalLabel2: "Esto leerá la base de datos SQLModel y generará un archivo vectorial SVG de alta definición perfecto para tu diario de autoconocimiento.",
+    howRenderLocal: "Herramienta Python CLI Local",
+    githubBtn: "Ver Backend en GitHub",
+    renderLocalLabel1: "El repositorio incluye una carpeta 'backend' con una potente CLI en Python. Asegúrate de tener Python 3.11+, instala las dependencias de 'requirements.txt', y carga tu JSON exportado para inicializar la base de datos local de análisis profundo. Luego, puedes generar SVG con:",
+    renderLocalLabel2: "Nota: El JSON que exportas desde esta sección es el formato definitivo y más robusto; es el puente universal entre esta UI interactiva y el motor analítico de Python en tu disco duro.",
     dangerZoneTitle: "Zona de Peligro",
     dangerZoneAdvice: "Las siguientes acciones son destructivas y no se pueden deshacer. Puedes restaurar el conjunto original de ejemplo o bien vaciar por completo todo el mapa para empezar desde cero.",
     dangerZoneResetBtn: "Restaurar Ejemplo (Datos Semilla)",
@@ -194,7 +196,7 @@ const TRANSLATIONS = {
     alertBackupSuccess: "¡Copia de seguridad local JSON importada exitosamente!",
     alertBackupError: "Error al importar el archivo. El JSON no tiene un formato de respaldo válido de IdentityMap.",
     dataPortabilityTitle: "Copia de Seguridad e Importación JSON",
-    dataPortabilityDesc: "Exporta todo tu mapa actual de identidad (nodos, relaciones y snapshots temporales) en un archivo JSON estructurado para guardarlo en tu disco local y volver a cargarlo en cualquier momento.",
+    dataPortabilityDesc: "Exporta todo tu mapa actual de identidad (nodos, relaciones y snapshots temporales) en un archivo JSON estructurado. Este JSON es el mejor y único formato que necesitas tanto para resguardar tus datos como para cargarlos en el backend CLI de Python para el análisis avanzado local.",
     exportJsonBtn: "Exportar Copia de Seguridad JSON",
     importJsonBtn: "Importar Copia de Seguridad JSON",
     importJsonSelect: "Seleccionar Archivo JSON de Resguardo",
@@ -231,9 +233,10 @@ const TRANSLATIONS = {
     dotExportTitle: "DOT Export Code (Graphviz)",
     downloadedDot: "Downloaded!",
     downloadDotBtn: "Download DOT Code",
-    howRenderLocal: "How to render this locally?",
-    renderLocalLabel1: "Install Graphviz in your terminal and run our Python command:",
-    renderLocalLabel2: "This will read the SQLModel database and generate a high-definition SVG vector file perfect for your self-insight journal.",
+    howRenderLocal: "Local Python CLI Tool",
+    githubBtn: "Get Backend on GitHub",
+    renderLocalLabel1: "The repository includes a 'backend' folder with a powerful Python CLI. Make sure you have Python 3.11+, install the 'requirements.txt' dependencies, and load your exported JSON to initialize the local deep analysis database. Then, generate SVGs with:",
+    renderLocalLabel2: "Note: The JSON you export from this section is the definitive and most robust format; it acts as the universal bridge between this interactive UI and the Python analytical engine on your hard drive.",
     dangerZoneTitle: "Danger Zone",
     dangerZoneAdvice: "The following actions are destructive and cannot be undone. You can restore the original sandbox template or fully wipe the map clean to design your own identity nodes from scratch.",
     dangerZoneResetBtn: "Restore Example Set (Seed Data)",
@@ -310,7 +313,7 @@ const TRANSLATIONS = {
     alertBackupSuccess: "Local JSON backup imported successfully!",
     alertBackupError: "Error importing file. The JSON does not have a valid IdentityMap backup format.",
     dataPortabilityTitle: "JSON Backup & Import",
-    dataPortabilityDesc: "Export all your current identity map (nodes, relationships, and temporal snapshots) to a structured JSON file to preserve on your local machine and restore at any time.",
+    dataPortabilityDesc: "Export all your current identity map (nodes, relationships, and temporal snapshots) to a structured JSON file. This JSON is the best and only format you need to both backup your data and load it into the local Python CLI backend for advanced analysis.",
     exportJsonBtn: "Export JSON Backup",
     importJsonBtn: "Import JSON Backup",
     importJsonSelect: "Select JSON Backup File",
@@ -1097,11 +1100,7 @@ export default function App() {
     }
   };
 
-  // Python download logic of absolute folders
-  const downloadPythonProjectZip = () => {
-    // We can simulate downloading by packing the files as separate parts
-    alert(t.downloadZipAlert);
-  };
+
 
   // JSON Backup Import / Export Utilities
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -2248,6 +2247,12 @@ export default function App() {
                       python main.py export-graph --output mi_identidad
                     </code>
                     <span className="text-[11px]">{t.renderLocalLabel2}</span>
+                    <div className="mt-2.5">
+                      <a href="https://github.com/AnaCataVC/identity-map" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors text-[10px] font-bold tracking-wide uppercase">
+                        <Github className="h-3.5 w-3.5" />
+                        {t.githubBtn}
+                      </a>
+                    </div>
                   </div>
                 </div>
 
